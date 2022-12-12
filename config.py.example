@@ -1,0 +1,32 @@
+import logging
+from logging.handlers import TimedRotatingFileHandler
+
+
+LOG_PATH = 'log/app.log'
+logging.basicConfig(
+    filename=LOG_PATH,
+    filemode='a',
+    level=logging.DEBUG,
+    format='[%(levelname)s] %(asctime)s.%(msecs)03d - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+LOGGER = logging.getLogger()
+# LOGGER.addHandler(TimedRotatingFileHandler(
+#     LOG_PATH,
+#     when="m",
+#     interval=1,
+#     backupCount=5
+# ))
+
+
+PATH_TO_TASKS = 'tasks/*.json'
+INTERVAL = 1
+COUNT_TO_EMAIL = 5
+
+SMTP_IP = ''
+
+HOSTNAME = ''
+PORT = 5432
+DATABASE = ''
+USERNAME = ''
+PASSWORD = ''

@@ -1,0 +1,6 @@
+{
+    "task_name": "spill_files",
+    "query": "select * from test_spill;",
+    "limit": ">= 500",
+    "email_rule_text": "Объем spill-файлов"
+}
