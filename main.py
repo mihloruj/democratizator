@@ -15,7 +15,7 @@ def get_tasks_configurations():
                 tasks.append(json.load(file))
         return tasks
     except Exception as ex:
-        LOGGER.error('error when loading tasks configurations \n{ex}')
+        LOGGER.error(f'error when loading tasks configurations \n{ex}')
 
 
 def check_condition(value, limit):
@@ -23,25 +23,30 @@ def check_condition(value, limit):
         return eval(f'{value} {limit}')
     except Exception as ex:
         LOGGER.error(f'error when check condition \n{ex}')
+        return
 
 
 def run_task(task_configuration):
-    LOGGER.info(f'task {task_configuration["task_name"]} running')
-    conn = SQLConnect()
-    query_result = conn.get_query_result(task_configuration["query"])
-    if query_result:
-        for row in query_result:
-            if check_condition(row['size'], task_configuration['limit']):
-                conn.insert_or_update_history_table(row, task_configuration)
-                history_row = conn.get_row_from_history_table(row, task_configuration)[0] 
-                if history_row['hit_count'] >= COUNT_TO_EMAIL and history_row['mail_sent_datetime'] is None:
-                    try:
-                        send_message(history_row, task_configuration)
-                        LOGGER.info('email send to admins')
-                        conn.update_send_mail_time(row, task_configuration)
-                    except Exception as ex:
-                        LOGGER.error(f'email for {history_row["usename"]} with p{history_row["procpid"]} not be sent\n{ex}')
-    conn.commit_and_close()
+    try:
+        LOGGER.info(f'task {task_configuration["task_name"]} running now')
+        conn = GPConnect()
+        query_result = conn.get_query_result(task_configuration["query"])
+        if query_result:
+            for row in query_result:
+                if check_condition(row['value'], task_configuration['limit']):
+                    conn.insert_or_update_history_table(row, task_configuration)
+                    history_row = conn.get_row_from_history_table(row, task_configuration)[0] 
+
+                    if history_row['hit_count'] >= COUNT_TO_EMAIL and history_row['mail_sent_datetime'] is None:
+                        try:
+                            send_message(history_row, task_configuration)
+                            LOGGER.info('email send to admins')
+                            conn.update_send_mail_time(row, task_configuration)
+                        except Exception as ex:
+                            LOGGER.error(f'email for {history_row["usename"]} with p{history_row["procpid"]} not be sent\n{ex}')
+        conn.commit_and_close()
+    except Exception as ex:
+        LOGGER.error(f'task {task_configuration["task_name"]} failed...\n{ex}')
 
 
 if __name__ == "__main__":
